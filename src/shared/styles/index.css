@@ -1,3 +1,28 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  min-height: 100vh;
+  /* again stupid css hacks */
+  min-height: -webkit-fill-available;
+  display: flex;
+  flex-direction: column;
+}
+
+html {
+  /* tired of css */
+  height: -webkit-fill-available;
+}
+
+body,
+html {
+  position: fixed;
+  width: 100%;
+}
+
+#root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
