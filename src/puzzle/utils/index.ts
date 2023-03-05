@@ -2,6 +2,7 @@ import {mapAccum, repeat} from 'ramda'
 
 export const shuffle = (arr: number[]): number[] => {
   const res = [...arr]
+  // Fisher-Yates shuffle algo
   for (let i = res.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
     ;[res[i], res[j]] = [res[j], res[i]]
@@ -13,9 +14,11 @@ export const MAX_LENGTH = 8
 
 const elMap: {[key: string]: number} = {
   empty: 0,
-  blue: 1,
-  red: 2,
-  green: 3,
+  one: 1,
+  two: 2,
+  three: 3,
+  four: 4,
+  five: 5,
 }
 
 export const genMap = (difficulty: number): number[] => {
@@ -37,6 +40,7 @@ export const genMap = (difficulty: number): number[] => {
 }
 
 const plusOne = (prev: number, _: number) => [prev + 1, prev + 1] as [number, number]
+// fill array from 2 to MAX_LENGTH
 export const fillDifficulties = () => mapAccum(plusOne, 1, repeat(2, MAX_LENGTH - 1))[1]
 
 export const wait = (ms: number) =>

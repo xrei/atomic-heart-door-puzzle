@@ -44,7 +44,7 @@ export const createGameFactory = () => {
     ({start, end}) => {
       const len = MAX_LENGTH
       const res = []
-      let i = start
+      let i: number = start
       while (i !== end) {
         res.push(i)
         i = (i + 1) % len
@@ -66,6 +66,7 @@ export const createGameFactory = () => {
   const shift = createEvent()
   const resetGame = createEvent()
 
+  // - 2 because SLICE_LEN = 3 but indexes starting with 0
   $startIdx.on(prev, (idx) => (idx + MAX_LENGTH - 2) % MAX_LENGTH)
   $endIdx.on(prev, (idx) => (idx + MAX_LENGTH - 2) % MAX_LENGTH)
   $startIdx.on(next, (idx) => (idx + MAX_LENGTH + 2) % MAX_LENGTH)
@@ -78,10 +79,12 @@ export const createGameFactory = () => {
       sliceIdxs: $sliceIdxs,
     },
     fn: ({sliceIdxs, shuffledMap}) => {
+      // shift slice to the right by 1 position
       const shiftedSlice = sliceIdxs.map((idx, i) => {
         const prevIdx = sliceIdxs[i === 0 ? sliceIdxs.length - 1 : i - 1]
         return shuffledMap[prevIdx]
       })
+      // insert shifted slice to shuffledMap
       return shuffledMap.map((val, idx) => {
         if (sliceIdxs.includes(idx)) {
           return shiftedSlice[sliceIdxs.indexOf(idx)]

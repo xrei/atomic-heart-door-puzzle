@@ -70,9 +70,7 @@ const colorMap: {[key: number]: string} = {
   2: 'bg-rose-500',
   3: 'bg-green-500',
   4: 'bg-yellow-500',
-  5: 'bg-lime-500',
-  6: 'bg-purple-500',
-  7: 'bg-indigo-500',
+  5: 'bg-indigo-500',
 }
 
 type DotProps = {
