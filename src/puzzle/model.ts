@@ -13,6 +13,8 @@ export const createGameFactory = () => {
     return {
       correctMap,
       shuffledMap,
+      startIdx: 0,
+      endIdx: SLICE_LEN - 1,
     }
   })
 
@@ -82,6 +84,8 @@ export const createGameFactory = () => {
       targets: {
         correctMap: $correctMap,
         shuffledMap: $shuffledMap,
+        startIdx: $startIdx,
+        endIdx: $endIdx,
       },
     }),
   })
