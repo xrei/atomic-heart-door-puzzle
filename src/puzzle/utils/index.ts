@@ -1,4 +1,4 @@
-import {reduce, filter, mapAccum, repeat} from 'ramda'
+import {mapAccum, repeat} from 'ramda'
 
 export const shuffle = (arr: number[]): number[] => {
   const res = [...arr]
