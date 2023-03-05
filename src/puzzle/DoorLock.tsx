@@ -1,21 +1,65 @@
 import clsx from 'clsx'
 import {useUnit} from 'effector-react'
-import {gameModel} from './model'
+import {ButtonHTMLAttributes, forwardRef, ReactNode} from 'react'
+import {GameModel, gameModel} from './model'
 
-export const DoorLock = () => {
-  const [isComplete] = useUnit([gameModel.$isComplete])
+export const Game = () => {
+  return <DoorLock gameModel={gameModel} />
+}
+
+type Props = {
+  gameModel: GameModel
+}
+
+const DoorLock = ({gameModel}: Props) => {
+  const [isComplete, isStarted] = useUnit([gameModel.$isComplete, gameModel.$isGameStarted])
 
   return (
-    <div className="flex flex-col gap-4 m-4 p-8 bg-slate-100 rounded-sm shadow-md max-w-lg w-full ">
-      {isComplete ? <CompleteScreen /> : <GameScreen />}
+    <div className="flex flex-col items-center justify-center gap-4 m-4 p-6 bg-slate-300 rounded-sm shadow-lg shadow-neutral-800 max-w-lg w-full max-h-[256px] flex-1">
+      {isStarted ? (
+        isComplete ? (
+          <CompleteScreen gameModel={gameModel} />
+        ) : (
+          <GameScreen gameModel={gameModel} />
+        )
+      ) : (
+        <SettingsScreen gameModel={gameModel} />
+      )}
     </div>
   )
 }
 
-const SettingsScreen = () => {
+const SettingsScreen = ({gameModel}: Props) => {
+  const [val, difficulties, difficultyChanged] = useUnit([
+    gameModel.$selectedDifficulty,
+    gameModel.$difficulties,
+    gameModel.difficultyChanged,
+  ])
+
   return (
-    <div className="flex flex-col">
-      <div className="flex gap-2"></div>
+    <div className="flex flex-col items-center justify-center">
+      <h1 className="text-2xl mb-4">🚪 Door puzzle 🧩</h1>
+      <div className="flex gap-2 items-center">
+        <label htmlFor="difficulty-select">⚙️ Difficulty:</label>
+        <select
+          className="p-1 px-3 rounded-md border border-solid border-stone-400"
+          defaultValue={val}
+          name="difficulty-select"
+          id="difficulty-select"
+          onChange={(e) => difficultyChanged(Number(e.target.value))}
+        >
+          {difficulties.map((v) => (
+            <option key={v} value={v}>
+              {v < 5 && '🟢'}
+              {v >= 5 && v <= 6 && '🟠'}
+              {v > 6 && '🔴'} {v}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="flex mt-8">
+        <Button onClick={() => gameModel.gameStarted()}>Start 🚪</Button>
+      </div>
     </div>
   )
 }
@@ -25,6 +69,10 @@ const colorMap: {[key: number]: string} = {
   1: 'bg-cyan-500',
   2: 'bg-rose-500',
   3: 'bg-green-500',
+  4: 'bg-yellow-500',
+  5: 'bg-lime-500',
+  6: 'bg-purple-500',
+  7: 'bg-indigo-500',
 }
 
 type DotProps = {
@@ -34,7 +82,7 @@ const Dot = ({value}: DotProps) => {
   return <span className={clsx('rounded-full w-5 h-5', colorMap[value])}></span>
 }
 
-const GameScreen = () => {
+const GameScreen = ({gameModel}: Props) => {
   const [correctMap, shuffledMap, sliceIdxs] = useUnit([
     gameModel.$correctMap,
     gameModel.$shuffledMap,
@@ -65,32 +113,45 @@ const GameScreen = () => {
         </div>
       </div>
       <div className="flex gap-4 text-white mt-8 items-center justify-center">
-        <button className="px-3 py-1 bg-cyan-700 rounded-sm" onClick={() => gameModel.prev()}>
-          Prev
-        </button>
-        <button className="px-3 py-1 bg-cyan-700 rounded-sm" onClick={() => gameModel.next()}>
-          Next
-        </button>
+        <Button onClick={() => gameModel.prev()}>Prev</Button>
+        <Button onClick={() => gameModel.next()}>Next</Button>
 
-        <button className="px-3 py-1 bg-cyan-700 rounded-sm" onClick={() => gameModel.shift()}>
+        <Button className="bg-orange-500 hover:bg-orange-600" onClick={() => gameModel.shift()}>
           Shift
-        </button>
+        </Button>
       </div>
     </>
   )
 }
 
-const CompleteScreen = () => {
+const CompleteScreen = ({gameModel}: Props) => {
+  const [secondsCount] = useUnit([gameModel.$secondsCount])
+
   return (
     <div className="flex flex-col items-center justify-center flex-1">
       <span className="mb-2 text-4xl">👑</span>
-      <h1 className="mb-10 text-2xl font-bold uppercase tracking-widest">Completed!</h1>
-      <button
-        className="transition-colors px-5 uppercase tracking-wider text-lg py-4 bg-sky-400 hover:bg-sky-600 rounded-sm text-white"
-        onClick={() => gameModel.resetGame()}
-      >
-        🎲 new game 🎲
-      </button>
+      <h1 className="mb-2 text-2xl font-bold uppercase tracking-widest">Completed!</h1>
+      <p className="mb-10 text-gray-800 from-black uppercase tracking-wider">
+        in {secondsCount} seconds
+      </p>
+      <Button onClick={() => gameModel.resetGame()}>🎲 new game 🎲</Button>
     </div>
   )
 }
+
+const Button = forwardRef<
+  HTMLButtonElement,
+  {children?: ReactNode} & ButtonHTMLAttributes<HTMLButtonElement>
+>(({children, className, ...rest}, ref) => {
+  return (
+    <button
+      className={clsx(
+        'transition-colors px-4 uppercase tracking-wider text-lg py-3 bg-blue-500 hover:bg-blue-600 rounded-sm text-white',
+        className
+      )}
+      {...rest}
+    >
+      {children}
+    </button>
+  )
+})

@@ -1,3 +1,5 @@
+import {reduce, filter, mapAccum, repeat} from 'ramda'
+
 export const shuffle = (arr: number[]): number[] => {
   const res = [...arr]
   for (let i = res.length - 1; i > 0; i--) {
@@ -33,3 +35,11 @@ export const genMap = (difficulty: number): number[] => {
 
   return result
 }
+
+const plusOne = (prev: number, _: number) => [prev + 1, prev + 1] as [number, number]
+export const fillDifficulties = () => mapAccum(plusOne, 1, repeat(2, MAX_LENGTH - 1))[1]
+
+export const wait = (ms: number) =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })

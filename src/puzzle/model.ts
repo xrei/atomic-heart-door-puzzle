@@ -1,13 +1,26 @@
 import {combine, createEffect, createEvent, createStore, sample} from 'effector'
 import {spread} from 'patronum'
-import {shuffle, MAX_LENGTH, genMap} from './utils'
+import {shuffle, MAX_LENGTH, genMap, fillDifficulties, wait} from './utils'
+
+type GameConfig = {
+  difficulty: number
+}
 
 export const createGameFactory = () => {
   const SLICE_LEN = 3
-  const DIFFICULTY = 3
 
-  const init = createEffect(() => {
-    const correctMap = genMap(DIFFICULTY)
+  const gameStarted = createEvent()
+  const $isGameStarted = createStore(false).on(gameStarted, (s) => !s)
+
+  const $difficulties = createStore<number[]>(fillDifficulties())
+  const difficultyChanged = createEvent<number>()
+  const $selectedDifficulty = createStore($difficulties.getState()[1]).on(
+    difficultyChanged,
+    (_, d) => d
+  )
+
+  const init = createEffect(({difficulty}: GameConfig) => {
+    const correctMap = genMap(difficulty)
     const shuffledMap = shuffle(correctMap)
 
     return {
@@ -15,6 +28,7 @@ export const createGameFactory = () => {
       shuffledMap,
       startIdx: 0,
       endIdx: SLICE_LEN - 1,
+      stopwatchStarted: true,
     }
   })
 
@@ -78,6 +92,30 @@ export const createGameFactory = () => {
     target: $shuffledMap,
   })
 
+  const $secondsCount = createStore(0)
+  const stopwatchFx = createEffect(async () => {
+    await wait(1000)
+  })
+
+  sample({
+    clock: stopwatchFx.doneData,
+    source: {
+      s: $secondsCount,
+      completion: $isComplete,
+    },
+    filter: ({completion}) => !completion,
+    fn: ({s}) => s + 1,
+    target: [$secondsCount, stopwatchFx],
+  })
+
+  sample({
+    clock: gameStarted,
+    source: {
+      difficulty: $selectedDifficulty,
+    },
+    target: init,
+  })
+
   sample({
     clock: init.doneData,
     target: spread({
@@ -91,19 +129,28 @@ export const createGameFactory = () => {
   })
 
   sample({
-    clock: resetGame,
-    target: init,
+    clock: init.doneData,
+    target: stopwatchFx,
   })
+
+  $isGameStarted.reset(resetGame)
+  $secondsCount.reset(resetGame)
 
   $correctMap.updates.watch((v) => console.log('correctMap: ', v))
   $shuffledMap.updates.watch((v) => console.log('shuffledMap: ', v))
+  $secondsCount.watch((s) => console.log('wasted s: ', s))
 
   return {
-    init,
+    $isGameStarted,
+    $selectedDifficulty,
+    $difficulties,
     $correctMap,
     $shuffledMap,
     $sliceIdxs,
     $isComplete,
+    $secondsCount,
+    gameStarted,
+    difficultyChanged,
     prev,
     next,
     shift,
@@ -111,6 +158,6 @@ export const createGameFactory = () => {
   }
 }
 
-export const gameModel = createGameFactory()
+export type GameModel = ReturnType<typeof createGameFactory>
 
-gameModel.init()
+export const gameModel = createGameFactory()
