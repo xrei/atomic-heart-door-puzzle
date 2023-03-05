@@ -108,3 +108,5 @@ export const createGameFactory = () => {
 }
 
 export const gameModel = createGameFactory()
+
+gameModel.init()
