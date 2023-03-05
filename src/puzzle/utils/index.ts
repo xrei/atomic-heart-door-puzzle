@@ -1,4 +1,10 @@
-import {mapAccum, repeat} from 'ramda'
+import {append, mapAccum, repeat, unfold} from 'ramda'
+
+/** global, describes max elements
+ *
+ *  FIXME: actually many functions relies on it, fix?
+ */
+export const MAX_LENGTH = 8
 
 export const shuffle = (arr: number[]): number[] => {
   const res = [...arr]
@@ -10,8 +16,6 @@ export const shuffle = (arr: number[]): number[] => {
   return res
 }
 
-export const MAX_LENGTH = 8
-
 const elMap: {[key: string]: number} = {
   empty: 0,
   one: 1,
@@ -21,6 +25,7 @@ const elMap: {[key: string]: number} = {
   five: 5,
 }
 
+/** generate game map based on difficulty */
 export const genMap = (difficulty: number): number[] => {
   const elKeys = Object.keys(elMap) // Get the keys of the element map
   const result = Array(MAX_LENGTH).fill(elMap.empty) // Initialize the result array with MAX_LENGTH zeros
@@ -47,3 +52,12 @@ export const wait = (ms: number) =>
   new Promise((resolve) => {
     setTimeout(resolve, ms)
   })
+
+export const getSliceIdxs = (start: number, end: number) => {
+  /** pure magic ok */
+  const sliceIdxs = unfold((idx) => (idx === end ? false : [idx, (idx + 1) % MAX_LENGTH]), start)
+  return append(end, sliceIdxs)
+}
+
+/** probably stupid way to compare */
+export const compareArrays = (xs: number[], ys: number[]) => xs.toString() === ys.toString()

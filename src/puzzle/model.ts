@@ -1,6 +1,14 @@
 import {combine, createEffect, createEvent, createStore, sample} from 'effector'
 import {spread} from 'patronum'
-import {shuffle, MAX_LENGTH, genMap, fillDifficulties, wait} from './utils'
+import {
+  shuffle,
+  MAX_LENGTH,
+  genMap,
+  fillDifficulties,
+  wait,
+  getSliceIdxs,
+  compareArrays,
+} from './utils'
 
 type GameConfig = {
   difficulty: number
@@ -32,34 +40,18 @@ export const createGameFactory = () => {
     }
   })
 
+  // maps
   const $correctMap = createStore<number[]>([])
   const $shuffledMap = createStore<number[]>([])
+
+  // slice
   const $startIdx = createStore(0)
   const $endIdx = createStore(SLICE_LEN - 1)
-  const $sliceIdxs = combine(
-    {
-      start: $startIdx,
-      end: $endIdx,
-    },
-    ({start, end}) => {
-      const len = MAX_LENGTH
-      const res = []
-      let i: number = start
-      while (i !== end) {
-        res.push(i)
-        i = (i + 1) % len
-      }
-      res.push(end)
-      return res
-    }
+  const $sliceIdxs = combine({start: $startIdx, end: $endIdx}, ({start, end}) =>
+    getSliceIdxs(start, end)
   )
-  const $isComplete = combine(
-    {
-      a: $correctMap,
-      b: $shuffledMap,
-    },
-    ({a, b}) => a.toString() === b.toString()
-  )
+
+  const $isComplete = combine($correctMap, $shuffledMap, compareArrays)
 
   const prev = createEvent()
   const next = createEvent()
