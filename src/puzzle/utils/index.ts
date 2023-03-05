@@ -30,7 +30,7 @@ export const genMap = (difficulty: number): number[] => {
   const elKeys = Object.keys(elMap) // Get the keys of the element map
   const result = Array(MAX_LENGTH).fill(elMap.empty) // Initialize the result array with MAX_LENGTH zeros
 
-  // Choose two random non-zero values and set them at random indices
+  // Choose random non-zero values and set them at random indices
   const indices = new Set<number>()
   while (indices.size < difficulty) {
     const randomIndex = Math.floor(Math.random() * MAX_LENGTH)
