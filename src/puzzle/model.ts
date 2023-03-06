@@ -27,6 +27,10 @@ export const createGameFactory = () => {
     (_, d) => d
   )
 
+  const $modes = createStore(['line', 'circle'])
+  const modeChanged = createEvent<string>()
+  const $gameMode = createStore('line').on(modeChanged, (_, m) => m)
+
   const init = createEffect(({difficulty}: GameConfig) => {
     const correctMap = genMap(difficulty)
     const shuffledMap = shuffle(correctMap)
@@ -133,12 +137,14 @@ export const createGameFactory = () => {
 
   $correctMap.updates.watch((v) => console.log('correctMap: ', v))
   $shuffledMap.updates.watch((v) => console.log('shuffledMap: ', v))
-  $secondsCount.watch((s) => console.log('wasted s: ', s))
+  // $secondsCount.watch((s) => console.log('wasted s: ', s))
 
   return {
     $isGameStarted,
     $selectedDifficulty,
     $difficulties,
+    $modes,
+    $gameMode,
     $correctMap,
     $shuffledMap,
     $sliceIdxs,
@@ -146,6 +152,7 @@ export const createGameFactory = () => {
     $secondsCount,
     gameStarted,
     difficultyChanged,
+    modeChanged,
     prev,
     next,
     shift,

@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import {useUnit} from 'effector-react'
 import {ButtonHTMLAttributes, forwardRef, ReactNode} from 'react'
+import {CircleMode, LineMode} from './render'
 import {GameModel, gameModel} from './model'
 
 export const Game = () => {
@@ -15,7 +16,7 @@ const DoorLock = ({gameModel}: Props) => {
   const [isComplete, isStarted] = useUnit([gameModel.$isComplete, gameModel.$isGameStarted])
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4 m-4 p-6 bg-slate-300 rounded-sm shadow-lg shadow-neutral-800 max-w-lg w-full max-h-[256px] flex-1">
+    <div className="flex flex-col items-center justify-center gap-4 m-4 p-6 bg-slate-300 rounded-sm shadow-lg shadow-neutral-800 max-w-lg w-full  flex-1">
       {isStarted ? (
         isComplete ? (
           <CompleteScreen gameModel={gameModel} />
@@ -30,32 +31,53 @@ const DoorLock = ({gameModel}: Props) => {
 }
 
 const SettingsScreen = ({gameModel}: Props) => {
-  const [val, difficulties, difficultyChanged] = useUnit([
+  const [diff, difficulties, difficultyChanged, mode, modeChanged, modes] = useUnit([
     gameModel.$selectedDifficulty,
     gameModel.$difficulties,
     gameModel.difficultyChanged,
+    gameModel.$gameMode,
+    gameModel.modeChanged,
+    gameModel.$modes,
   ])
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <h1 className="text-2xl mb-4">🚪 Door puzzle 🧩</h1>
-      <div className="flex gap-2 items-center">
-        <label htmlFor="difficulty-select">⚙️ Difficulty:</label>
-        <select
-          className="p-1 px-3 rounded-md border border-solid border-stone-400"
-          defaultValue={val}
-          name="difficulty-select"
-          id="difficulty-select"
-          onChange={(e) => difficultyChanged(Number(e.target.value))}
-        >
-          {difficulties.map((v) => (
-            <option key={v} value={v}>
-              {v < 5 && '🟢'}
-              {v >= 5 && v <= 6 && '🟠'}
-              {v > 6 && '🔴'} {v}
-            </option>
-          ))}
-        </select>
+      <h1 className="text-2xl mb-6">🚪 Door puzzle 🧩</h1>
+      <div className="flex flex-col items-start gap-2">
+        <div className="flex gap-2 items-center">
+          <label htmlFor="mode-select">⚙️ Mode:</label>
+          <select
+            className="p-1 px-3 rounded-md border border-solid border-stone-400"
+            defaultValue={mode}
+            name="mode-select"
+            id="mode-select"
+            onChange={(e) => modeChanged(e.target.value)}
+          >
+            {modes.map((v) => (
+              <option key={v} value={v}>
+                {v}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex gap-2 items-center">
+          <label htmlFor="difficulty-select">⚙️ Difficulty:</label>
+          <select
+            className="p-1 px-3 rounded-md border border-solid border-stone-400"
+            defaultValue={diff}
+            name="difficulty-select"
+            id="difficulty-select"
+            onChange={(e) => difficultyChanged(Number(e.target.value))}
+          >
+            {difficulties.map((v) => (
+              <option key={v} value={v}>
+                {v < 5 && '🟢'}
+                {v >= 5 && v <= 6 && '🟠'}
+                {v > 6 && '🔴'} {v}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
       <div className="flex mt-8">
         <Button onClick={() => gameModel.gameStarted()}>Start 🚪</Button>
@@ -64,51 +86,17 @@ const SettingsScreen = ({gameModel}: Props) => {
   )
 }
 
-const colorMap: {[key: number]: string} = {
-  0: 'border-2 border-solid border-stone-500',
-  1: 'bg-cyan-500',
-  2: 'bg-rose-500',
-  3: 'bg-green-500',
-  4: 'bg-yellow-500',
-  5: 'bg-indigo-500',
-}
-
-type DotProps = {
-  value: number
-}
-const Dot = ({value}: DotProps) => {
-  return <span className={clsx('rounded-full w-5 h-5', colorMap[value])}></span>
-}
-
 const GameScreen = ({gameModel}: Props) => {
-  const [correctMap, shuffledMap, sliceIdxs] = useUnit([
-    gameModel.$correctMap,
-    gameModel.$shuffledMap,
-    gameModel.$sliceIdxs,
-  ])
+  const mode = useUnit(gameModel.$gameMode)
+
   return (
     <>
-      <div className="text-xl flex flex-col gap-2">
-        <div className="flex justify-center">
-          {correctMap.map((v, idx) => (
-            <div key={idx} className={clsx('flex py-2 px-2')}>
-              <Dot value={v} />
-            </div>
-          ))}
-        </div>
-        <div className="flex justify-center">
-          {shuffledMap.map((v, idx) => (
-            <div
-              key={idx}
-              className={clsx(
-                'flex px-2 py-2',
-                sliceIdxs.some((v) => v === idx) ? 'bg-emerald-400 bg-opacity-30' : 'transparent'
-              )}
-            >
-              <Dot value={v} />
-            </div>
-          ))}
-        </div>
+      <div className="text-xl flex flex-col gap-2 select-none">
+        {mode === 'line' ? (
+          <LineMode gameModel={gameModel} />
+        ) : (
+          <CircleMode gameModel={gameModel} />
+        )}
       </div>
       <div className="flex gap-4 text-white mt-8 items-center justify-center">
         <Button onClick={() => gameModel.prev()}>Prev</Button>
