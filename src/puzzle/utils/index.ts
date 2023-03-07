@@ -1,4 +1,4 @@
-import {append, mapAccum, repeat, unfold} from 'ramda'
+import {append, mapAccum, repeat, unfold, invertObj} from 'ramda'
 
 /** global, describes max elements
  *

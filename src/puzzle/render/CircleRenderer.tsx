@@ -1,8 +1,9 @@
 import clsx from 'clsx'
 import {useUnit} from 'effector-react'
-import {ReactElement} from 'react'
+import {ReactElement, useMemo} from 'react'
 import {GameModel} from '../model'
 import {Dot} from './Dot'
+import styles from './styles.module.css'
 
 const calcTheta = (n: number) => {
   const theta = []
@@ -68,18 +69,25 @@ export const CircleMode = ({gameModel}: CircleModeProps) => {
     gameModel.$sliceIdxs,
   ])
 
+  const memoCircle = useMemo(
+    () => (
+      <CircleRenderer width={320} height={320} arr={correctMap}>
+        {(v) => (
+          <div className="p-1 flex">
+            <Dot value={v} />
+          </div>
+        )}
+      </CircleRenderer>
+    ),
+    [correctMap]
+  )
+
   return (
     <div className="flex justify-center relative w-[320px] h-[320px]">
       <div className="absolute inset-0 w-full h-full">
-        <CircleRenderer width={320} height={320} arr={correctMap}>
-          {(v) => (
-            <div className="p-1 flex">
-              <Dot value={v} />
-            </div>
-          )}
-        </CircleRenderer>
+        {memoCircle}
         <CircleRenderer
-          className="m-[60px] outline-1 outline-offset-[16px] outline-gray-400 outline rounded-full"
+          className={clsx('m-[60px]', styles['circle-border'])}
           width={200}
           height={200}
           arr={shuffledMap}
